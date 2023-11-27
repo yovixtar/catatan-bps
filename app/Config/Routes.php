@@ -7,3 +7,5 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 $routes->post('/login', 'Auth::login');
+
+$routes->get('/kegiatan/daftar', 'Kegiatan::daftar_kegiatan', ['filter' => 'jwtfilter']);
