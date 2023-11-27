@@ -5,7 +5,10 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-$routes->get('/', 'Home::index');
-$routes->post('/login', 'Auth::login');
+$routes->get('/', 'Home::Index');
+$routes->post('/login', 'Auth::Login');
 
-$routes->get('/kegiatan/daftar', 'Kegiatan::daftar_kegiatan', ['filter' => 'jwtfilter']);
+$routes->get('/kegiatan/daftar', 'Kegiatan::DaftarKegiatan', ['filter' => 'adminfilter']);
+
+$routes->get('/pengguna', 'Auth::DaftarPengguna', ['filter' => 'adminfilter']);
+$routes->post('/pengguna', 'Auth::TambahPengguna', ['filter' => 'adminfilter']);

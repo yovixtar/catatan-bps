@@ -8,7 +8,7 @@ class Kegiatan extends BaseController
 {
     use ResponseTrait;
 
-    public function daftar_kegiatan(): \CodeIgniter\HTTP\Response
+    public function DaftarKegiatan(): \CodeIgniter\HTTP\Response
     {
         $message = "Hallo";
         $data = [

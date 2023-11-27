@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use CodeIgniter\API\ResponseTrait;
 use CodeIgniter\Controller;
 use CodeIgniter\HTTP\CLIRequest;
 use CodeIgniter\HTTP\IncomingRequest;
@@ -21,6 +22,18 @@ use Psr\Log\LoggerInterface;
  */
 abstract class BaseController extends Controller
 {
+
+    use ResponseTrait;
+
+    protected function messageResponse(string $message, int $code): \CodeIgniter\HTTP\Response
+    {
+        $data = [
+            'code' => $code,
+            'message' => $message,
+        ];
+        return $this->respond($data, $code);
+    }
+
     /**
      * Instance of the main Request object.
      *

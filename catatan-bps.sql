@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 26 Nov 2023 pada 16.06
+-- Waktu pembuatan: 27 Nov 2023 pada 05.31
 -- Versi server: 10.4.28-MariaDB
 -- Versi PHP: 8.2.4
 
@@ -50,7 +50,7 @@ CREATE TABLE `pengguna` (
   `nip` varchar(20) NOT NULL,
   `password` varchar(64) NOT NULL,
   `nama` varchar(100) NOT NULL,
-  `role` varchar(5) NOT NULL,
+  `role` varchar(5) NOT NULL DEFAULT 'user',
   `token` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -59,7 +59,7 @@ CREATE TABLE `pengguna` (
 --
 
 INSERT INTO `pengguna` (`nip`, `password`, `nama`, `role`, `token`) VALUES
-('1', 'd033e22ae348aeb5660fc2140aec35850c4da997', 'Administrator', 'admin', NULL);
+('1', 'd033e22ae348aeb5660fc2140aec35850c4da997', 'Administrator', 'admin', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuaXAiOiIxIiwicm9sZSI6ImFkbWluIiwidGltZXN0YW1wIjoxNzAxMDQ0OTk4fQ.2KkZXqk8-sX47qKZyZ9jquruYuCo_GIBuGtbyf1WWj4');
 
 --
 -- Indexes for dumped tables
