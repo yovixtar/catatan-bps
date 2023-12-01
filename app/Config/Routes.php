@@ -8,7 +8,9 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Home::Index');
 $routes->post('/login', 'Auth::Login');
 
-$routes->get('/kegiatan/daftar', 'Kegiatan::DaftarKegiatan', ['filter' => 'adminfilter']);
+$routes->get('/kegiatan', 'Kegiatan::DaftarKegiatan', ['filter' => 'userfilter']);
 
 $routes->get('/pengguna', 'Auth::DaftarPengguna', ['filter' => 'adminfilter']);
 $routes->post('/pengguna', 'Auth::TambahPengguna', ['filter' => 'adminfilter']);
+$routes->post('/ganti-password', 'Auth::GantiPassword', ['filter' => 'adminfilter']);
+$routes->delete('/pengguna/(:segment)', 'Auth::HapusAkun/$1', ['filter' => 'adminfilter']);

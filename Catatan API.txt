@@ -1,7 +1,7 @@
 API :
-- Login
-- Daftar User
-- Tambah User
+- Login v
+- Daftar User v
+- Tambah User v
 - Ganti Password
 - Hapus User
 - Daftar Kegiatan

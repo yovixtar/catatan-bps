@@ -159,6 +159,46 @@ class Auth extends BaseController
                 'message' => $message,
             ];
             return $this->respond($data, 200);
+        } catch (\Throwable $th) {
+            // Tangani kesalahan dan kirim respons error
+            $message = 'Terjadi kesalahan dalam proses penambahan pengguna.';
+            return $this->messageResponse($message, 500);
+        }
+    }
+
+    public function GantiPassword(): \CodeIgniter\HTTP\Response
+    {
+        try {
+            $nip = $this->request->getPost('nip');
+            $password_baru = $this->request->getPost('password-baru');
+
+            if (empty($nip) || empty($password_baru)) {
+                $message = "NIP dan password (Baru) harus diisi.";
+                return $this->messageResponse($message, 400);
+            }
+
+            if (!is_string($password_baru)) {
+                $message = "Password harus berupa string.";
+                return $this->messageResponse($message, 400);
+            }
+
+            // Hash password baru menggunakan SHA1
+            $hashedPassword = sha1($password_baru);
+
+            // Cek apakah pengguna dengan NIP tersebut ada di database
+            $existingUser = $this->db->table('pengguna')->where('nip', $nip)->get()->getRow();
+
+            if (!$existingUser) {
+                $message = "Pengguna dengan NIP tersebut tidak ditemukan.";
+                return $this->messageResponse($message, 404);
+            }
+
+            // Update password untuk pengguna yang bersangkutan
+            $this->db->table('pengguna')->set('password', $hashedPassword)->where('nip', $nip)->update();
+
+            // Kirim respons berhasil mengubah password
+            $message = "Berhasil mengubah password.";
+            return $this->messageResponse($message, 200);
 
         } catch (\Throwable $th) {
             // Tangani kesalahan dan kirim respons error
@@ -166,4 +206,35 @@ class Auth extends BaseController
             return $this->messageResponse($message, 500);
         }
     }
+
+    public function HapusAkun(String $nip): \CodeIgniter\HTTP\Response {
+        try {    
+            
+            if (empty($nip)) {
+                $message = "NIP harus diisi.";
+                return $this->messageResponse($message, 400);
+            }
+    
+            // Cek apakah pengguna dengan NIP tersebut ada di database
+            $existingUser = $this->db->table('pengguna')->where('nip', $nip)->get()->getRow();
+    
+            if (!$existingUser) {
+                $message = "Pengguna dengan NIP tersebut tidak ditemukan.";
+                return $this->messageResponse($message, 404);
+            }
+    
+            // Hapus akun pengguna
+            $this->db->table('pengguna')->where('nip', $nip)->delete();
+    
+            // Kirim respons berhasil menghapus akun
+            $message = "Berhasil menghapus akun pengguna.";
+            return $this->messageResponse($message, 200);
+    
+        } catch (\Throwable $th) {
+            // Tangani kesalahan dan kirim respons error
+            $message = 'Terjadi kesalahan dalam proses penghapusan akun pengguna.';
+            return $this->messageResponse($message, 500);
+        }
+    }
+    
 }
