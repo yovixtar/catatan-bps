@@ -34,6 +34,16 @@ abstract class BaseController extends Controller
         return $this->respond($data, $code);
     }
 
+    protected function dataResponse(array $data, int $code = ResponseInterface::HTTP_OK): \CodeIgniter\HTTP\Response
+    {
+        $data = [
+            'code' => $code,
+            'data' => $data,
+        ];
+        return $this->respond($data, $code);
+    }
+
+
     /**
      * Instance of the main Request object.
      *

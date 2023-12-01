@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 27 Nov 2023 pada 05.31
+-- Waktu pembuatan: 01 Des 2023 pada 10.10
 -- Versi server: 10.4.28-MariaDB
 -- Versi PHP: 8.2.4
 
@@ -31,7 +31,7 @@ USE `catatan-bps`;
 
 CREATE TABLE `kegiatan` (
   `id` int(11) NOT NULL,
-  `terealisasi` tinyint(1) NOT NULL,
+  `terealisasi` tinyint(1) NOT NULL DEFAULT 0,
   `tanggal` date NOT NULL,
   `target` varchar(255) NOT NULL,
   `nama` varchar(255) NOT NULL,
@@ -59,7 +59,8 @@ CREATE TABLE `pengguna` (
 --
 
 INSERT INTO `pengguna` (`nip`, `password`, `nama`, `role`, `token`) VALUES
-('1', 'd033e22ae348aeb5660fc2140aec35850c4da997', 'Administrator', 'admin', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuaXAiOiIxIiwicm9sZSI6ImFkbWluIiwidGltZXN0YW1wIjoxNzAxMDQ0OTk4fQ.2KkZXqk8-sX47qKZyZ9jquruYuCo_GIBuGtbyf1WWj4');
+('1', 'd033e22ae348aeb5660fc2140aec35850c4da997', 'Administrator', 'admin', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuaXAiOiIxIiwicm9sZSI6ImFkbWluIiwidGltZXN0YW1wIjoxNzAxNDE4NTkxfQ.h7WGvZsmqKQ0IPTWi1sWSkIAUdIUU7A6DfzqyO3j0wk'),
+('12345', '95c946bf622ef93b0a211cd0fd028dfdfcf7e39e', 'User 1', 'user', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuaXAiOiIxMjM0NSIsInJvbGUiOiJ1c2VyIiwidGltZXN0YW1wIjoxNzAxNDIxMjY2fQ.iaZE51CejjPjkRsgXPgiBRVEAAFjmoOn_hCe1Nw4z9g');
 
 --
 -- Indexes for dumped tables

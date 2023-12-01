@@ -2,6 +2,7 @@
 
 namespace App\Filters;
 
+use App\Helpers\JwtHelper;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -17,24 +18,13 @@ class AdminFilter implements FilterInterface
 
     public function before(RequestInterface $request, $arguments = null)
     {
-        $key = Token::JWT_SECRET_KEY;
-        $header = $request->getHeaderLine("Authorization");
-        $token = null;
-
-        // ekstrak token dari header
-        if (!empty($header)) {
-            if (preg_match('/Bearer\s(\S+)/', $header, $matches)) {
-                $token = $matches[1];
-            }
-        }
-
-        // periksa jika token kosong atau null
-        if (is_null($token) || empty($token)) {
-            return $this->respondUnauthorized('Token tidak valid');
-        }
-
         try {
-            $decoded = JWT::decode($token, new Key($key, 'HS256'));
+            $decoded = JwtHelper::decodeTokenFromRequest($request);
+
+            if (!$decoded) {
+                return $this->respondUnauthorized('Token tidak valid');
+            }
+            
             // Periksa apakah token yang didekode memiliki peran 'admin'
             if (!property_exists($decoded, 'role') || $decoded->role !== 'admin') {
                 return $this->respondUnauthorized('Anda tidak memiliki izin untuk akses ini');
