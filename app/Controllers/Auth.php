@@ -11,6 +11,12 @@ class Auth extends BaseController
     use ResponseTrait;
     private $db;
 
+    const HTTP_SERVER_ERROR = 500;
+    const HTTP_BAD_REQUEST = 400;
+    const HTTP_UNAUTHORIZED = 401;
+    const HTTP_SUCCESS = 200;
+    const HTTP_SUCCESS_CREATE = 201;
+
     public function __construct()
     {
         $this->db = \Config\Database::connect();;
@@ -25,12 +31,12 @@ class Auth extends BaseController
 
             if (empty($nip) || empty($password)) {
                 $message = "NIP dan password harus diisi.";
-                return $this->messageResponse($message, 400);
+                return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
             }
 
             if (!is_string($password)) {
                 $message = "Password harus berupa string.";
-                return $this->messageResponse($message, 400);
+                return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
             }
 
             // Hash password menggunakan SHA1
@@ -42,7 +48,7 @@ class Auth extends BaseController
             // Jika pengguna tidak ditemukan atau password tidak cocok, kirim respons error
             if (!$user || $user->password !== $hashedPassword) {
                 $message = "Gagal Login. NIP atau password salah.";
-                return $this->messageResponse($message, 401);
+                return $this->messageResponse($message, self::HTTP_UNAUTHORIZED);
             }
 
             // Buat token JWT dengan NIP dan role (misalnya, asumsi ada kolom 'role' pada tabel pengguna)
@@ -62,15 +68,15 @@ class Auth extends BaseController
             // Kirim respons berhasil login dengan data token
             $message = "Berhasil Login";
             $data = [
-                'code' => 200,
+                'code' => self::HTTP_SUCCESS,
                 'message' => $message,
                 'token' => $token,
             ];
-            return $this->respond($data, 200);
+            return $this->respond($data, self::HTTP_SUCCESS);
         } catch (\Throwable $th) {
             // Tangani kesalahan dan kirim respons error
             $message = 'Terjadi kesalahan dalam proses login.';
-            return $this->messageResponse($message, 500);
+            return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
         }
     }
 
@@ -87,10 +93,10 @@ class Auth extends BaseController
             // Jika tidak ada pengguna, kirim respons kosong
             if (empty($pengguna)) {
                 $data = [
-                    'code' => 200,
+                    'code' => self::HTTP_SUCCESS,
                     'data' => [],
                 ];
-                return $this->respond($data, 200);
+                return $this->respond($data, self::HTTP_SUCCESS);
             }
 
             // Format data nip dan nama dari pengguna
@@ -103,14 +109,14 @@ class Auth extends BaseController
 
             // Kirim respons dengan data nip dan nama semua pengguna (kecuali admin)
             $data = [
-                'code' => 200,
+                'code' => self::HTTP_SUCCESS,
                 'data' => $formattedData,
             ];
-            return $this->respond($data, 200);
+            return $this->respond($data, self::HTTP_SUCCESS);
         } catch (\Exception $e) {
             // Tangani kesalahan dan kirim respons error
             $message = 'Terjadi kesalahan dalam mengambil data pengguna.';
-            return $this->messageResponse($message, 500);
+            return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
         }
     }
 
@@ -124,12 +130,12 @@ class Auth extends BaseController
 
             if (empty($nip) || empty($nama) || empty($password)) {
                 $message = "NIP, nama, dan password harus diisi.";
-                return $this->messageResponse($message, 400);
+                return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
             }
 
             if (!is_string($password)) {
                 $message = "Password harus berupa string.";
-                return $this->messageResponse($message, 400);
+                return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
             }
 
             // Hash password menggunakan SHA1
@@ -140,7 +146,7 @@ class Auth extends BaseController
 
             if ($existingUser) {
                 $message = "Pengguna dengan NIP tersebut sudah ada.";
-                return $this->messageResponse($message, 400);
+                return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
             }
 
             // Tambahkan pengguna baru ke dalam tabel pengguna
@@ -155,14 +161,14 @@ class Auth extends BaseController
             // Kirim respons berhasil menambahkan pengguna
             $message = "Berhasil menambahkan pengguna.";
             $data = [
-                'code' => 200,
+                'code' => self::HTTP_SUCCESS,
                 'message' => $message,
             ];
-            return $this->respond($data, 200);
+            return $this->respond($data, self::HTTP_SUCCESS);
         } catch (\Throwable $th) {
             // Tangani kesalahan dan kirim respons error
             $message = 'Terjadi kesalahan dalam proses penambahan pengguna.';
-            return $this->messageResponse($message, 500);
+            return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
         }
     }
 
@@ -174,12 +180,12 @@ class Auth extends BaseController
 
             if (empty($nip) || empty($password_baru)) {
                 $message = "NIP dan password (Baru) harus diisi.";
-                return $this->messageResponse($message, 400);
+                return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
             }
 
             if (!is_string($password_baru)) {
                 $message = "Password harus berupa string.";
-                return $this->messageResponse($message, 400);
+                return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
             }
 
             // Hash password baru menggunakan SHA1
@@ -198,12 +204,12 @@ class Auth extends BaseController
 
             // Kirim respons berhasil mengubah password
             $message = "Berhasil mengubah password.";
-            return $this->messageResponse($message, 200);
+            return $this->messageResponse($message, self::HTTP_SUCCESS);
 
         } catch (\Throwable $th) {
             // Tangani kesalahan dan kirim respons error
             $message = 'Terjadi kesalahan dalam proses penambahan pengguna.';
-            return $this->messageResponse($message, 500);
+            return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
         }
     }
 
@@ -212,7 +218,7 @@ class Auth extends BaseController
             
             if (empty($nip)) {
                 $message = "NIP harus diisi.";
-                return $this->messageResponse($message, 400);
+                return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
             }
     
             // Cek apakah pengguna dengan NIP tersebut ada di database
@@ -228,12 +234,12 @@ class Auth extends BaseController
     
             // Kirim respons berhasil menghapus akun
             $message = "Berhasil menghapus akun pengguna.";
-            return $this->messageResponse($message, 200);
+            return $this->messageResponse($message, self::HTTP_SUCCESS);
     
         } catch (\Throwable $th) {
             // Tangani kesalahan dan kirim respons error
             $message = 'Terjadi kesalahan dalam proses penghapusan akun pengguna.';
-            return $this->messageResponse($message, 500);
+            return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
         }
     }
     
