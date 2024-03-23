@@ -208,7 +208,7 @@ class Auth extends BaseController
 
         } catch (\Throwable $th) {
             // Tangani kesalahan dan kirim respons error
-            $message = 'Terjadi kesalahan dalam proses penambahan pengguna.';
+            $message = 'Terjadi kesalahan dalam proses pengubahan password.';
             return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
         }
     }
@@ -226,7 +226,7 @@ class Auth extends BaseController
     
             if (!$existingUser) {
                 $message = "Pengguna dengan NIP tersebut tidak ditemukan.";
-                return $this->messageResponse($message, 404);
+                return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
             }
     
             // Hapus akun pengguna

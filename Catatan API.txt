@@ -1,11 +1,35 @@
 API :
-- Login v
-- Daftar User v
-- Tambah User v
-- Ganti Password
-- Hapus User
+- Login 
+- Daftar User 
+- Tambah User 
+- Update (Nama) User
+- Ganti Password 
+- Aktifkan User 
+- Non-Aktifkan User
+- Hapus User 
+
 - Daftar Kegiatan
-- Detail Kegiatan
 - Tambah Target Kegiatan
-- Realisasi Kegiatan
-- Hapus Kegiatan
+- Update Target Kegiatan
+- Realisasi Kegiatan 
+- Aktifkan Kegiatan 
+- Non-Aktifkan Kegiatan
+- Hapus Kegiatan 
+
+- Daftar Laporan (Filter)
+- Tambah Laporan
+- Aktifkan Laporan
+- Non-Aktifkan Laporan
+- Hapus Laporan
+
+- Verifikasi Laporan
+
+Email : didin.stmik.1@gmail.com
+Pass : didinstmik
+
+000webhost :
+skripsi-didin.000webhostapp.com
+
+Pass : Didinstmik.1
+
+iyabosco_dskripsi
