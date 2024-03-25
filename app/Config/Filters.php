@@ -3,6 +3,7 @@
 namespace Config;
 
 use App\Filters\AdminFilter;
+use App\Filters\AdminUserFilter;
 use App\Filters\UserFilter;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Filters\CSRF;
@@ -29,6 +30,7 @@ class Filters extends BaseConfig
         'secureheaders' => SecureHeaders::class,
         'adminfilter'   => AdminFilter::class,
         'userfilter'    => UserFilter::class,
+        'adminuserfilter'    => AdminUserFilter::class,
     ];
 
     /**

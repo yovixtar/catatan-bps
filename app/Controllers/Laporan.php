@@ -31,11 +31,13 @@ class Laporan extends BaseController
             // Buat query berdasarkan parameter filter
             $laporanQuery = $this->laporanModel->select('laporan.*, pengguna.nama AS nama_pengguna, verifikasi.status AS status_verifikasi, verifikasi.keterangan AS keterangan_verifikasi')
                 ->join('pengguna', 'pengguna.nip = laporan.nip_pengguna')
-                ->join('verifikasi', 'verifikasi.id_laporan = laporan.id')
+                ->join('verifikasi', 'verifikasi.id_laporan = laporan.id', 'left')
                 ->join(
                     "(SELECT id_laporan, MAX(id) AS max_id FROM verifikasi GROUP BY id_laporan) AS latest_verifikasi",
-                    "latest_verifikasi.id_laporan = laporan.id AND verifikasi.id = latest_verifikasi.max_id"
-                );
+                    "latest_verifikasi.id_laporan = laporan.id AND verifikasi.id = latest_verifikasi.max_id",
+                    'left'
+                )
+                ->withDeleted();
 
             if (!empty($tahun)) {
                 $laporanQuery->where('tahun', $tahun);
@@ -54,18 +56,19 @@ class Laporan extends BaseController
             }
 
             // Format data laporan
-            $formattedData = [];
+            // $formattedData = [];
             foreach ($laporan as $item) {
                 $formattedData[] = [
-                    'id' => $item->id,
-                    'nip_pengguna' => $item->nip_pengguna,
-                    'nama_pengguna' => $item->nama_pengguna,
-                    'tahun' => $item->tahun,
-                    'bulan' => $item->bulan,
-                    'keterangan_laporan' => $item->keterangan,
-                    'status_laporan' => $item->status,
-                    'status_verifikasi' => $item->status_verifikasi,
-                    'keterangan_verifikasi' => $item->keterangan_verifikasi,
+                    'id' => $item['id'],
+                    'nip_pengguna' => $item['nip_pengguna'],
+                    'nama_pengguna' => $item['nama_pengguna'],
+                    'tahun' => $item['tahun'],
+                    'bulan' => $item['bulan'],
+                    'keterangan_laporan' => $item['keterangan'],
+                    'status_laporan' => $item['status'],
+                    'status_verifikasi' => $item['status_verifikasi'],
+                    'keterangan_verifikasi' => $item['keterangan_verifikasi'],
+                    'active' => ($item['deleted_at'] == null) ? true : false,
                 ];
             }
 
@@ -101,7 +104,7 @@ class Laporan extends BaseController
 
             // Masukkan data ke dalam tabel laporan
             $data = [
-                'nip_petugas' => $nip_pengguna,
+                'nip_pengguna' => $nip_pengguna,
                 'tahun' => $tahun,
                 'bulan' => $bulan,
                 'keterangan' => $keterangan,

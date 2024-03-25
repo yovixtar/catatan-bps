@@ -34,8 +34,8 @@ class Kegiatan extends BaseController
             // Ambil data kegiatan dari database
             $kegiatan = $this->kegiatanModel
                 ->where('id_laporan', $id_laporan)
-                ->join('pengguna', 'pengguna.nip = kegiatan.nip_pencatat')
-                ->select('kegiatan.*, pengguna.nama AS nama_pencatat')
+                ->join('pengguna', 'pengguna.nip = kegiatan.nip_pengguna')
+                ->select('kegiatan.*, pengguna.nama AS nama_pengguna')
                 ->findAll();
 
             // Jika tidak ada kegiatan, kirim respons kosong
@@ -54,8 +54,8 @@ class Kegiatan extends BaseController
                     'tanggal' => $item->tanggal,
                     'target' => $item->target,
                     'nama' => $item->nama,
-                    'nip_pencatat' => $item->nip_pencatat,
-                    'nama_pencatat' => $item->nama_pencatat,
+                    'nip_pengguna' => $item->nip_pengguna,
+                    'nama_pengguna' => $item->nama_pengguna,
                     'realisasi' => $item->realisasi,
                     'keterangan' => $item->keterangan,
                 ];
@@ -80,14 +80,14 @@ class Kegiatan extends BaseController
                 return $this->messageResponse('Token tidak valid', self::HTTP_UNAUTHORIZED);
             }
 
-            // Dapatkan nip_pencatat dari payload
-            $nip_pencatat = $decoded->nip;
+            // Dapatkan nip_pengguna dari payload
+            $nip_pengguna = $decoded->nip;
 
             $nama_kegiatan = $this->request->getPost('nama');
             $tanggal = $this->request->getPost('tanggal');
             $target = $this->request->getPost('target');
 
-            if (empty($nama_kegiatan) || empty($tanggal) || empty($target) || empty($nip_pencatat)) {
+            if (empty($nama_kegiatan) || empty($tanggal) || empty($target) || empty($nip_pengguna)) {
                 $message = "Semua field harus diisi.";
                 return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
             }
@@ -97,7 +97,7 @@ class Kegiatan extends BaseController
                 'tanggal' => $tanggal,
                 'target' => $target,
                 'nama' => $nama_kegiatan,
-                'nip_pencatat' => $nip_pencatat,
+                'nip_pengguna' => $nip_pengguna,
             ];
 
             $this->kegiatanModel->insert($data);

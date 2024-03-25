@@ -12,8 +12,6 @@ API :
 - Tambah Target Kegiatan
 - Update Target Kegiatan
 - Realisasi Kegiatan 
-- Aktifkan Kegiatan 
-- Non-Aktifkan Kegiatan
 - Hapus Kegiatan 
 
 - Daftar Laporan (Filter)
