@@ -25,8 +25,8 @@ class UserFilter implements FilterInterface
                 return $this->respondUnauthorized('Token tidak valid');
             }
             
-            // Periksa apakah token yang didekode memiliki peran 'user'
-            if (!property_exists($decoded, 'role') || $decoded->role !== 'user') {
+            // Periksa apakah token yang didekode memiliki peran 'petugas'
+            if (!property_exists($decoded, 'role') || $decoded->role !== 'petugas') {
                 return $this->respondUnauthorized('Anda tidak memiliki izin untuk akses ini');
             }
         } catch (Exception $ex) {

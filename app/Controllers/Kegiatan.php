@@ -3,12 +3,14 @@
 namespace App\Controllers;
 
 use App\Helpers\JwtHelper;
+use App\Models\KegiatanModel;
 use CodeIgniter\API\ResponseTrait;
+use CodeIgniter\HTTP\Response;
 
 class Kegiatan extends BaseController
 {
     use ResponseTrait;
-    private $db;
+    protected $kegiatanModel;
 
     const HTTP_SERVER_ERROR = 500;
     const HTTP_BAD_REQUEST = 400;
@@ -18,18 +20,23 @@ class Kegiatan extends BaseController
 
     public function __construct()
     {
-        $this->db = \Config\Database::connect();;
+        $this->kegiatanModel = new KegiatanModel();
     }
 
-    public function DaftarKegiatan(): \CodeIgniter\HTTP\Response
+    public function DaftarKegiatan(string $id_laporan): Response
     {
         try {
+            if (empty($id_laporan)) {
+                $message = "ID laporan harus diisi.";
+                return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
+            }
+
             // Ambil data kegiatan dari database
-            $kegiatan = $this->db->table('kegiatan')
-                ->select('kegiatan.*, pengguna.nama AS nama_pencatat')
+            $kegiatan = $this->kegiatanModel
+                ->where('id_laporan', $id_laporan)
                 ->join('pengguna', 'pengguna.nip = kegiatan.nip_pencatat')
-                ->get()
-                ->getResult();
+                ->select('kegiatan.*, pengguna.nama AS nama_pencatat')
+                ->findAll();
 
             // Jika tidak ada kegiatan, kirim respons kosong
             if (empty($kegiatan)) {
@@ -63,7 +70,7 @@ class Kegiatan extends BaseController
         }
     }
 
-    public function TambahTarget(): \CodeIgniter\HTTP\Response
+    public function TambahTarget(): Response
     {
         try {
 
@@ -85,8 +92,6 @@ class Kegiatan extends BaseController
                 return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
             }
 
-            // Lakukan validasi tanggal di sini jika diperlukan
-
             // Masukkan data ke dalam tabel kegiatan
             $data = [
                 'tanggal' => $tanggal,
@@ -95,7 +100,7 @@ class Kegiatan extends BaseController
                 'nip_pencatat' => $nip_pencatat,
             ];
 
-            $this->db->table('kegiatan')->insert($data);
+            $this->kegiatanModel->insert($data);
 
             // Kirim respons berhasil menambahkan target kegiatan
             $message = "Berhasil menambahkan target kegiatan.";
@@ -107,7 +112,7 @@ class Kegiatan extends BaseController
         }
     }
 
-    public function TambahRealisasi(): \CodeIgniter\HTTP\Response
+    public function TambahRealisasi(): Response
     {
         try {
             // Ambil data POST dari request
@@ -121,7 +126,7 @@ class Kegiatan extends BaseController
             }
 
             // Cek apakah kegiatan dengan ID tersebut ada di database
-            $existingKegiatan = $this->db->table('kegiatan')->where('id', $id_kegiatan)->get()->getRow();
+            $existingKegiatan = $this->kegiatanModel->find($id_kegiatan);
 
             if (!$existingKegiatan) {
                 $message = "Kegiatan dengan ID tersebut tidak ditemukan.";
@@ -135,7 +140,7 @@ class Kegiatan extends BaseController
                 'keterangan' => $keterangan,
             ];
 
-            $this->db->table('kegiatan')->where('id', $id_kegiatan)->update($data);
+            $this->kegiatanModel->update($id_kegiatan, $data);
 
             // Kirim respons berhasil mengubah data kegiatan
             $message = "Berhasil menambahkan realisasi kegiatan.";
@@ -151,7 +156,7 @@ class Kegiatan extends BaseController
     {
         try {
             // Cari kegiatan berdasarkan ID
-            $kegiatan = $this->db->table('kegiatan')->where('id', $id)->get()->getRow();
+            $kegiatan = $this->kegiatanModel->find($id);
 
             // Jika kegiatan tidak ditemukan, kirim respons 404
             if (!$kegiatan) {
@@ -159,7 +164,7 @@ class Kegiatan extends BaseController
             }
 
             // Hapus kegiatan dari database
-            $this->db->table('kegiatan')->where('id', $id)->delete();
+            $this->kegiatanModel->where('id', $id)->delete();
 
             // Kirim respons berhasil menghapus kegiatan
             return $this->messageResponse('Berhasil menghapus kegiatan', self::HTTP_SUCCESS);

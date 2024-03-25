@@ -15,5 +15,7 @@ $routes->delete('/kegiatan/(:segment)', 'Kegiatan::HapusKegiatan/$1', ['filter' 
 
 $routes->get('/pengguna', 'Auth::DaftarPengguna', ['filter' => 'adminfilter']);
 $routes->post('/pengguna', 'Auth::TambahPengguna', ['filter' => 'adminfilter']);
-$routes->post('/ganti-password', 'Auth::GantiPassword', ['filter' => 'adminfilter']);
-$routes->delete('/pengguna/(:segment)', 'Auth::HapusAkun/$1', ['filter' => 'adminfilter']);
+$routes->delete('/pengguna/(:segment)', 'Auth::HapusPengguna/$1', ['filter' => 'adminfilter']);
+$routes->post('/pengguna/ganti-password', 'Auth::GantiPassword', ['filter' => 'adminfilter']);
+$routes->post('/pengguna/ganti-nama', 'Auth::GantiNama', ['filter' => 'adminfilter']);
+$routes->post('/pengguna/switch-status', 'Auth::SwitchStatusPengguna', ['filter' => 'adminfilter']);

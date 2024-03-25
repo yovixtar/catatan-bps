@@ -25,8 +25,8 @@ class AdminFilter implements FilterInterface
                 return $this->respondUnauthorized('Token tidak valid');
             }
             
-            // Periksa apakah token yang didekode memiliki peran 'admin'
-            if (!property_exists($decoded, 'role') || $decoded->role !== 'admin') {
+            // Periksa apakah token yang didekode memiliki peran 'pengawas'
+            if (!property_exists($decoded, 'role') || $decoded->role !== 'pengawas') {
                 return $this->respondUnauthorized('Anda tidak memiliki izin untuk akses ini');
             }
         } catch (Exception $ex) {
