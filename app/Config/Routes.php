@@ -8,7 +8,7 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Home::Index');
 $routes->post('/login', 'Auth::Login');
 
-$routes->get('/kegiatan', 'Kegiatan::DaftarKegiatan', ['filter' => 'userfilter']);
+$routes->get('/kegiatan/(:segment)', 'Kegiatan::DaftarKegiatan/$1', ['filter' => 'userfilter']);
 $routes->post('/kegiatan/target', 'Kegiatan::TambahTarget', ['filter' => 'userfilter']);
 $routes->post('/kegiatan/realisasi', 'Kegiatan::TambahRealisasi', ['filter' => 'userfilter']);
 $routes->delete('/kegiatan/(:segment)', 'Kegiatan::HapusKegiatan/$1', ['filter' => 'userfilter']);
@@ -18,6 +18,7 @@ $routes->post('/laporan', 'Laporan::TambahLaporan', ['filter' => 'userfilter']);
 $routes->post('/laporan/switch-status', 'Laporan::SwitchStatusLaporan', ['filter' => 'userfilter']);
 $routes->delete('/laporan/(:segment)', 'Laporan::HapusLaporan/$1', ['filter' => 'userfilter']);
 
+$routes->get('/verifikasi/(:segment)', 'Verifikasi::DaftarVerfikasi/$1', ['filter' => 'adminuserfilter']);
 $routes->post('/verifikasi', 'Verifikasi::ReportingVerifikasi', ['filter' => 'adminuserfilter']);
 
 $routes->get('/pengguna', 'Auth::DaftarPengguna', ['filter' => 'adminfilter']);

@@ -84,8 +84,8 @@ class Verifikasi extends BaseController
             // Ambil data verifikasi dari database
             $verifikasi = $this->verifikasiModel
                 ->where('id_laporan', $id_laporan)
-                ->join('pengguna', 'pengguna.nip = kegiatan.nip_pengguna', 'left')
-                ->select('pengguna.nama AS nama_pengguna')
+                ->join('pengguna', 'pengguna.nip = verifikasi.nip_pengguna', 'left')
+                ->select('verifikasi.*, pengguna.nama AS nama_pengguna')
                 ->findAll();
 
             // Jika tidak ada verifikasi, kirim respons kosong
@@ -93,19 +93,19 @@ class Verifikasi extends BaseController
                 return $this->dataResponse([], self::HTTP_SUCCESS);
             }
 
-            // Format data kegiatan
+            // Format data riwayat verifikasi
             $formattedData = [];
             foreach ($verifikasi as $item) {
                 $formattedData[] = [
-                    'id' => $item->id,
-                    'nip_pengguna' => $item->nip_pengguna,
-                    'nama_pengguna' => $item->nama_pengguna,
-                    'status' => $item->status,
-                    'keterangan' => $item->keterangan,
+                    'id' => $item['id'],
+                    'nip_pengguna' => $item['nip_pengguna'],
+                    'nama_pengguna' => $item['nama_pengguna'],
+                    'status' => $item['status'],
+                    'keterangan' => $item['keterangan'],
                 ];
             }
 
-            // Kirim respons dengan data kegiatan
+            // Kirim respons dengan data riwayat verifikasi
             return $this->dataResponse($formattedData, self::HTTP_SUCCESS);
         } catch (\Throwable $th) {
             // Tangani kesalahan dan kirim respons error

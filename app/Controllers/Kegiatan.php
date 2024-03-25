@@ -83,6 +83,7 @@ class Kegiatan extends BaseController
             // Dapatkan nip_pengguna dari payload
             $nip_pengguna = $decoded->nip;
 
+            $id_laporan = $this->request->getPost('id_laporan');
             $nama_kegiatan = $this->request->getPost('nama');
             $tanggal = $this->request->getPost('tanggal');
             $target = $this->request->getPost('target');
@@ -94,6 +95,7 @@ class Kegiatan extends BaseController
 
             // Masukkan data ke dalam tabel kegiatan
             $data = [
+                'id_laporan' => $id_laporan,
                 'tanggal' => $tanggal,
                 'target' => $target,
                 'nama' => $nama_kegiatan,
