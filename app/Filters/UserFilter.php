@@ -7,10 +7,7 @@ use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\API\ResponseTrait;
-use Config\Token;
 use Exception;
-use \Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 
 class UserFilter implements FilterInterface
 {

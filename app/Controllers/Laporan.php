@@ -25,11 +25,21 @@ class Laporan extends BaseController
     public function DaftarLaporan(): Response
     {
         try {
+            $decoded = JwtHelper::decodeTokenFromRequest($this->request);
+
+            if (!$decoded) {
+                return $this->messageResponse('Token tidak valid', self::HTTP_UNAUTHORIZED);
+            }
+
+            // Dapatkan nip_pengguna dari payload
+            $nip_pengguna = $decoded->nip;
+
             $tahun = $this->request->getGet('tahun');
             $status = $this->request->getGet('status');
 
             // Buat query berdasarkan parameter filter
             $laporanQuery = $this->laporanModel->select('laporan.*, pengguna.nama AS nama_pengguna, verifikasi.status AS status_verifikasi, verifikasi.keterangan AS keterangan_verifikasi')
+                ->where('laporan.nip_pengguna', $nip_pengguna)
                 ->join('pengguna', 'pengguna.nip = laporan.nip_pengguna')
                 ->join('verifikasi', 'verifikasi.id_laporan = laporan.id', 'left')
                 ->join(
@@ -41,11 +51,17 @@ class Laporan extends BaseController
 
             if (!empty($tahun)) {
                 $laporanQuery->where('tahun', $tahun);
+            } else {
+                $tahunSekarang = date('Y');
+                $laporanQuery->where('tahun', $tahunSekarang);
             }
 
             if (!empty($status)) {
-                $laporanQuery->where('verifikasi.status', $status);
+                $laporanQuery->where('verifikasi.status', $status)
+                 ->orWhere('laporan.status', $status);
             }
+
+
 
             // Eksekusi query
             $laporan = $laporanQuery->findAll();

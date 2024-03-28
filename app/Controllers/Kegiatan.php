@@ -34,7 +34,7 @@ class Kegiatan extends BaseController
             // Ambil data kegiatan dari database
             $kegiatan = $this->kegiatanModel
                 ->where('id_laporan', $id_laporan)
-                ->join('pengguna', 'pengguna.nip = kegiatan.nip_pengguna')
+                ->join('pengguna', 'pengguna.nip = kegiatan.nip_pengguna', 'left')
                 ->select('kegiatan.*, pengguna.nama AS nama_pengguna')
                 ->findAll();
 
@@ -46,18 +46,18 @@ class Kegiatan extends BaseController
             // Format data kegiatan
             $formattedData = [];
             foreach ($kegiatan as $item) {
-                $terealisasi = $item->terealisasi === '1' ? true : false;
+                $terealisasi = $item['terealisasi'] === '1' ? true : false;
 
                 $formattedData[] = [
-                    'id' => $item->id,
+                    'id' => $item['id'],
                     'terealisasi' => $terealisasi,
-                    'tanggal' => $item->tanggal,
-                    'target' => $item->target,
-                    'nama' => $item->nama,
-                    'nip_pengguna' => $item->nip_pengguna,
-                    'nama_pengguna' => $item->nama_pengguna,
-                    'realisasi' => $item->realisasi,
-                    'keterangan' => $item->keterangan,
+                    'tanggal' => $item['tanggal'],
+                    'target' => $item['target'],
+                    'nama' => $item['nama'],
+                    'nip_pengguna' => $item['nip_pengguna'],
+                    'nama_pengguna' => $item['nama_pengguna'],
+                    'realisasi' => $item['realisasi'],
+                    'keterangan' => $item['keterangan'],
                 ];
             }
 
