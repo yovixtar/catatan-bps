@@ -23,18 +23,27 @@ class Kegiatan extends BaseController
         $this->kegiatanModel = new KegiatanModel();
     }
 
-    public function DaftarKegiatan(string $id_laporan): Response
+    public function DaftarKegiatan(): Response
     {
         try {
-            if (empty($id_laporan)) {
-                $message = "ID laporan harus diisi.";
-                return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
+            $id_laporan = $this->request->getGet('id_laporan') ? $this->request->getGet('id_laporan') : '';
+            $keyword = $this->request->getGet('keyword') ? $this->request->getGet('keyword') : '';
+
+            // Buat query berdasarkan keberadaan id_laporan
+            $query = $this->kegiatanModel;
+            if ($id_laporan != '' || !empty($id_laporan)) {
+                $query->where('id_laporan', $id_laporan);
             }
 
-            // Ambil data kegiatan dari database
-            $kegiatan = $this->kegiatanModel
-                ->where('id_laporan', $id_laporan)
-                ->join('pengguna', 'pengguna.nip = kegiatan.nip_pengguna', 'left')
+            // Buat query berdasarkan keberadaan keyword
+            if ($keyword != '' || !empty($keyword)) {
+                $query->groupStart()
+                    ->like('kegiatan.nama', $keyword)
+                    ->orLike('keterangan', $keyword)
+                    ->groupEnd();
+            }
+
+            $kegiatan = $query->join('pengguna', 'pengguna.nip = kegiatan.nip_pengguna', 'left')
                 ->select('kegiatan.*, pengguna.nama AS nama_pengguna')
                 ->findAll();
 
