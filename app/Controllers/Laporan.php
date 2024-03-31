@@ -38,7 +38,7 @@ class Laporan extends BaseController
             $status = $this->request->getGet('status');
 
             // Buat query berdasarkan parameter filter
-            $laporanQuery = $this->laporanModel->select('laporan.*, pengguna.nama AS nama_pengguna, verifikasi.status AS status_verifikasi, verifikasi.keterangan AS keterangan_verifikasi')
+            $laporanQuery = $this->laporanModel->select('laporan.*, laporan.status AS status_laporan, laporan.keterangan AS keterangan_laporan, pengguna.nama AS nama_pengguna, verifikasi.status AS status_verifikasi, verifikasi.keterangan AS keterangan_verifikasi')
                 ->where('laporan.nip_pengguna', $nip_pengguna)
                 ->join('pengguna', 'pengguna.nip = laporan.nip_pengguna')
                 ->join('verifikasi', 'verifikasi.id_laporan = laporan.id', 'left')
@@ -61,8 +61,6 @@ class Laporan extends BaseController
                  ->orWhere('laporan.status', $status);
             }
 
-
-
             // Eksekusi query
             $laporan = $laporanQuery->findAll();
 
@@ -80,8 +78,8 @@ class Laporan extends BaseController
                     'nama_pengguna' => $item['nama_pengguna'],
                     'tahun' => $item['tahun'],
                     'bulan' => $item['bulan'],
-                    'keterangan_laporan' => $item['keterangan'],
-                    'status_laporan' => $item['status'],
+                    'keterangan_laporan' => $item['keterangan_laporan'],
+                    'status_laporan' => $item['status_laporan'],
                     'status_verifikasi' => $item['status_verifikasi'],
                     'keterangan_verifikasi' => $item['keterangan_verifikasi'],
                     'active' => ($item['deleted_at'] == null) ? true : false,
@@ -196,6 +194,72 @@ class Laporan extends BaseController
         } catch (\Throwable $th) {
             // Tangani kesalahan dan kirim respons error
             $message = 'Terjadi kesalahan dalam proses penghapusan permanen item laporan: ' . $th;
+            return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
+        }
+    }
+
+    // Pengawas
+
+    public function DaftarLaporanPengawas(): Response
+    {
+        try {
+            $tahun = $this->request->getGet('tahun');
+            $status = $this->request->getGet('status');
+
+            // Buat query berdasarkan parameter filter
+            $laporanQuery = $this->laporanModel->select('laporan.*, laporan.status AS status_laporan, laporan.keterangan AS keterangan_laporan, pengguna.nama AS nama_pengguna, verifikasi.status AS status_verifikasi, verifikasi.keterangan AS keterangan_verifikasi')
+                ->where('laporan.status', 'reported')
+                ->join('pengguna', 'pengguna.nip = laporan.nip_pengguna')
+                ->join('verifikasi', 'verifikasi.id_laporan = laporan.id', 'left')
+                ->join(
+                    "(SELECT id_laporan, MAX(id) AS max_id FROM verifikasi GROUP BY id_laporan) AS latest_verifikasi",
+                    "latest_verifikasi.id_laporan = laporan.id AND verifikasi.id = latest_verifikasi.max_id",
+                    'left'
+                )
+                ->withDeleted();
+
+            if (!empty($tahun)) {
+                $laporanQuery->where('tahun', $tahun);
+            } else {
+                $tahunSekarang = date('Y');
+                $laporanQuery->where('tahun', $tahunSekarang);
+            }
+
+            if (!empty($status)) {
+                $laporanQuery->where('verifikasi.status', $status)
+                 ->orWhere('laporan.status', $status);
+            }
+
+            // Eksekusi query
+            $laporan = $laporanQuery->findAll();
+
+            // Jika tidak ada laporan, kirim respons kosong
+            if (empty($laporan)) {
+                return $this->dataResponse([], self::HTTP_SUCCESS);
+            }
+
+            // Format data laporan
+            // $formattedData = [];
+            foreach ($laporan as $item) {
+                $formattedData[] = [
+                    'id' => $item['id'],
+                    'nip_pengguna' => $item['nip_pengguna'],
+                    'nama_pengguna' => $item['nama_pengguna'],
+                    'tahun' => $item['tahun'],
+                    'bulan' => $item['bulan'],
+                    'keterangan_laporan' => $item['keterangan_laporan'],
+                    'status_laporan' => $item['status_laporan'],
+                    'status_verifikasi' => $item['status_verifikasi'],
+                    'keterangan_verifikasi' => $item['keterangan_verifikasi'],
+                    'active' => ($item['deleted_at'] == null) ? true : false,
+                ];
+            }
+
+            // Kirim respons dengan data laporan
+            return $this->dataResponse($formattedData, self::HTTP_SUCCESS);
+        } catch (\Throwable $th) {
+            // Tangani kesalahan dan kirim respons error
+            $message = 'Terjadi kesalahan dalam mengambil data laporan: ' . $th;
             return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
         }
     }

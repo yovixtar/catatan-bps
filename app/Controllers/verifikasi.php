@@ -3,13 +3,14 @@
 namespace App\Controllers;
 
 use App\Helpers\JwtHelper;
+use App\Models\KegiatanModel;
 use App\Models\LaporanModel;
 use App\Models\VerifikasiModel;
 use CodeIgniter\HTTP\Response;
 
 class Verifikasi extends BaseController
 {
-    private $verifikasiModel, $laporanModel;
+    private $verifikasiModel, $laporanModel, $kegiatanModel;
 
     const HTTP_SERVER_ERROR = 500;
     const HTTP_BAD_REQUEST = 400;
@@ -21,6 +22,7 @@ class Verifikasi extends BaseController
     {
         $this->verifikasiModel = new VerifikasiModel();
         $this->laporanModel = new LaporanModel();
+        $this->kegiatanModel = new KegiatanModel();
     }
 
     public function ReportingVerifikasi(): Response
@@ -51,6 +53,18 @@ class Verifikasi extends BaseController
                 return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
             }
 
+            // Ambil semua kegiatan yang terkait dengan laporan yang diberikan
+            $kegiatan = $this->kegiatanModel->where('id_laporan', $id_laporan)->findAll();
+
+            // Periksa apakah semua kegiatan sudah terealisasi
+            foreach ($kegiatan as $item) {
+                if ($item['terealisasi'] != 1) {
+                    // Jika ada kegiatan yang belum terealisasi, kembalikan pesan kesalahan
+                    $message = "Seluruh kegiatan pada laporan harus terealisasi!";
+                    return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
+                }
+            }
+
             // Masukkan data ke dalam tabel verifiksai
             $data = [
                 'nip_pengguna' => $nip_pengguna,
@@ -72,10 +86,11 @@ class Verifikasi extends BaseController
         }
     }
 
+
     public function DaftarVerfikasi(int $id_laporan)
     {
         try {
-            
+
             if (empty($id_laporan)) {
                 $message = "ID laporan harus diisi.";
                 return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
