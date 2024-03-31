@@ -21,9 +21,11 @@ $routes->delete('/laporan/(:segment)', 'Laporan::HapusLaporan/$1', ['filter' => 
 $routes->get('/verifikasi/(:segment)', 'Verifikasi::DaftarVerfikasi/$1', ['filter' => 'adminuserfilter']);
 $routes->post('/verifikasi', 'Verifikasi::ReportingVerifikasi', ['filter' => 'adminuserfilter']);
 
+$routes->get('/pengguna/(:segment)', 'Auth::PenggunaSekarang/$1', ['filter' => 'adminuserfilter']);
+$routes->post('/pengguna/ganti-nama', 'Auth::GantiNama', ['filter' => 'adminuserfilter']);
+$routes->post('/pengguna/ganti-password', 'Auth::GantiPassword', ['filter' => 'adminuserfilter']);
+
 $routes->get('/pengguna', 'Auth::DaftarPengguna', ['filter' => 'adminfilter']);
 $routes->post('/pengguna', 'Auth::TambahPengguna', ['filter' => 'adminfilter']);
 $routes->delete('/pengguna/(:segment)', 'Auth::HapusPengguna/$1', ['filter' => 'adminfilter']);
-$routes->post('/pengguna/ganti-password', 'Auth::GantiPassword', ['filter' => 'adminfilter']);
-$routes->post('/pengguna/ganti-nama', 'Auth::GantiNama', ['filter' => 'adminfilter']);
 $routes->post('/pengguna/switch-status', 'Auth::SwitchStatusPengguna', ['filter' => 'adminfilter']);

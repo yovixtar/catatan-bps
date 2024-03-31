@@ -16,6 +16,7 @@ class Auth extends BaseController
     const HTTP_SERVER_ERROR = 500;
     const HTTP_BAD_REQUEST = 400;
     const HTTP_UNAUTHORIZED = 401;
+    const HTTP_NOT_FOUND = 401;
     const HTTP_SUCCESS = 200;
     const HTTP_SUCCESS_CREATE = 201;
 
@@ -55,6 +56,7 @@ class Auth extends BaseController
             $key = Token::JWT_SECRET_KEY;
             $payload = [
                 'nip' => $user['nip'],
+                'nama' => $user['nama'],
                 'role' => $user['role'],
                 'timestamp' => time(),
             ];
@@ -114,6 +116,47 @@ class Auth extends BaseController
             return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
         }
     }
+
+    public function PenggunaSekarang(string $nip): Response
+    {
+        try {
+            // Periksa apakah NIP kosong
+            if (empty($nip)) {
+                $message = "NIP harus diisi.";
+                return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
+            }
+
+            // Cari pengguna berdasarkan NIP
+            $pengguna = $this->penggunaModel->find($nip);
+
+            // Periksa apakah pengguna ditemukan
+            if (!$pengguna) {
+                $message = "Pengguna dengan NIP tersebut tidak ditemukan.";
+                return $this->messageResponse($message, self::HTTP_NOT_FOUND);
+            }
+
+            // Format data pengguna
+            $formattedData = [
+                'nip' => $pengguna['nip'],
+                'nama' => $pengguna['nama'],
+                'password' => $pengguna['password'],
+                'role' => $pengguna['role'],
+                'token' => $pengguna['token'],
+            ];
+
+            // Kirim respons dengan data pengguna
+            $data = [
+                'code' => self::HTTP_SUCCESS,
+                'data' => $formattedData,
+            ];
+            return $this->respond($data, self::HTTP_SUCCESS);
+        } catch (\Throwable $th) {
+            // Tangani kesalahan dan kirim respons error
+            $message = 'Terjadi kesalahan dalam mengambil data pengguna.';
+            return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
+        }
+    }
+
 
     public function TambahPengguna(): Response
     {
@@ -227,19 +270,34 @@ class Auth extends BaseController
             }
 
             // Cek apakah pengguna dengan NIP tersebut ada di database
-            $existingUser = $this->penggunaModel->find($nip);
+            $user = $this->penggunaModel->find($nip);
 
-            if (!$existingUser) {
+            if (!$user) {
                 $message = "Pengguna dengan NIP tersebut tidak ditemukan.";
                 return $this->messageResponse($message, 404);
             }
 
             // Update password untuk pengguna yang bersangkutan
-            $this->penggunaModel->set(['nama' => $nama_baru])->where('nip', $nip)->update();
+            $this->penggunaModel->update($user['nip'], ['nama' => $nama_baru]);
 
-            // Kirim respons berhasil mengubah nama
+            $key = Token::JWT_SECRET_KEY;
+            $payload = [
+                'nip' => $nip,
+                'nama' => $nama_baru,
+                'role' => $user['role'],
+                'timestamp' => time(),
+            ];
+            $token = JWT::encode($payload, $key, 'HS256');
+
+            $this->penggunaModel->update($user['nip'], ['token' => $token]);
+
             $message = "Berhasil mengubah nama.";
-            return $this->messageResponse($message, self::HTTP_SUCCESS);
+            $data = [
+                'code' => self::HTTP_SUCCESS,
+                'message' => $message,
+                'token' => $token,
+            ];
+            return $this->respond($data, self::HTTP_SUCCESS);
         } catch (\Throwable $th) {
             // Tangani kesalahan dan kirim respons error
             $message = 'Terjadi kesalahan dalam proses pengubahan nama.';
