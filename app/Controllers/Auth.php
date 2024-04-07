@@ -84,7 +84,7 @@ class Auth extends BaseController
         try {
             // Ambil data pengguna dari database
             $penggunaModel = new PenggunaModel();
-            $pengguna = $penggunaModel->select('nip, nama, role')->findAll();
+            $pengguna = $penggunaModel->withDeleted()->findAll();
 
             // Jika tidak ada pengguna, kirim respons kosong
             if (empty($pengguna)) {
@@ -113,7 +113,7 @@ class Auth extends BaseController
             return $this->respond($data, self::HTTP_SUCCESS);
         } catch (\Exception $e) {
             // Tangani kesalahan dan kirim respons error
-            $message = 'Terjadi kesalahan dalam mengambil data pengguna.';
+            $message = 'Terjadi kesalahan dalam mengambil data pengguna. Error : ' . $e ;
             return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
         }
     }
