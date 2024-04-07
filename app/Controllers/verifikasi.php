@@ -5,12 +5,12 @@ namespace App\Controllers;
 use App\Helpers\JwtHelper;
 use App\Models\KegiatanModel;
 use App\Models\LaporanModel;
-use App\Models\VerifikasiModel;
+use App\Models\VerifikasiLaporanModel;
 use CodeIgniter\HTTP\Response;
 
 class Verifikasi extends BaseController
 {
-    private $verifikasiModel, $laporanModel, $kegiatanModel;
+    private $verifikasiLaporanModel, $laporanModel, $kegiatanModel;
 
     const HTTP_SERVER_ERROR = 500;
     const HTTP_BAD_REQUEST = 400;
@@ -20,7 +20,7 @@ class Verifikasi extends BaseController
 
     public function __construct()
     {
-        $this->verifikasiModel = new VerifikasiModel();
+        $this->verifikasiLaporanModel = new VerifikasiLaporanModel();
         $this->laporanModel = new LaporanModel();
         $this->kegiatanModel = new KegiatanModel();
     }
@@ -73,12 +73,12 @@ class Verifikasi extends BaseController
                 'keterangan' => $keterangan,
             ];
 
-            $this->verifikasiModel->insert($data);
+            $this->verifikasiLaporanModel->insert($data);
             $this->laporanModel->update($id_laporan, ['status' => 'reported']);
 
             // Kirim respons berhasil menambahkan verifikasi
             $message = "Berhasil menambahkan proses verifikasi.";
-            return $this->messageResponse($message, self::HTTP_SUCCESS_CREATE);
+            return $this->messageResponse($message, self::HTTP_SUCCESS);
         } catch (\Throwable $th) {
             // Tangani kesalahan dan kirim respons error
             $message = 'Terjadi kesalahan dalam proses verifikasi: ' . $th;
@@ -97,7 +97,7 @@ class Verifikasi extends BaseController
             }
 
             // Ambil data verifikasi dari database
-            $verifikasi = $this->verifikasiModel
+            $verifikasi = $this->verifikasiLaporanModel
                 ->where('id_laporan', $id_laporan)
                 ->join('pengguna', 'pengguna.nip = verifikasi.nip_pengguna', 'left')
                 ->select('verifikasi.*, pengguna.nama AS nama_pengguna')
