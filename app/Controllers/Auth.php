@@ -101,6 +101,7 @@ class Auth extends BaseController
                     'nip' => $user['nip'],
                     'nama' => $user['nama'],
                     'role' => $user['role'],
+                    'active' => ($user['deleted_at'] == null) ? true : false,
                 ];
             }, $pengguna);
 

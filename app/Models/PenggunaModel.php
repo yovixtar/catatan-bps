@@ -9,7 +9,7 @@ class PenggunaModel extends Model
     protected $table            = 'pengguna';
     protected $primaryKey       = 'nip';
     protected $useSoftDeletes   = true;
-    protected $allowedFields    = ['password', 'nama', 'role', 'token', 'created_at', 'updated_at', 'deleted_at'];
+    protected $allowedFields    = ['nip','password', 'nama', 'role', 'token', 'created_at', 'updated_at', 'deleted_at'];
 
     // Dates
     protected $useTimestamps = true;
