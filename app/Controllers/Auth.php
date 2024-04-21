@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Helpers\JwtHelper;
 use App\Models\PenggunaModel;
 use CodeIgniter\API\ResponseTrait;
 use Config\Token;
@@ -82,9 +83,28 @@ class Auth extends BaseController
     public function DaftarPengguna(): Response
     {
         try {
-            // Ambil data pengguna dari database
-            $penggunaModel = new PenggunaModel();
-            $pengguna = $penggunaModel->withDeleted()->findAll();
+            $decoded = JwtHelper::decodeTokenFromRequest($this->request);
+
+            if (!$decoded) {
+                return $this->messageResponse('Token tidak valid', self::HTTP_UNAUTHORIZED);
+            }
+
+            $currentNIP = $decoded->nip;
+
+            $role = $this->request->getGet('role');
+
+            $pengguna = $this->penggunaModel->withDeleted();
+            $pengguna->orderBy('role', 'ASC')->orderBy('deleted_at', 'ASC')->orderBy('nama', 'ASC');
+
+            if (!empty($role)) {
+                $pengguna->where('role', $role);
+            }
+
+            if (!empty($currentNIP)) {
+                $pengguna->where('nip !=', $currentNIP);
+            }
+            
+            $pengguna = $pengguna->findAll();
 
             // Jika tidak ada pengguna, kirim respons kosong
             if (empty($pengguna)) {
@@ -113,7 +133,7 @@ class Auth extends BaseController
             return $this->respond($data, self::HTTP_SUCCESS);
         } catch (\Exception $e) {
             // Tangani kesalahan dan kirim respons error
-            $message = 'Terjadi kesalahan dalam mengambil data pengguna. Error : ' . $e ;
+            $message = 'Terjadi kesalahan dalam mengambil data pengguna. Error : ' . $e;
             return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
         }
     }

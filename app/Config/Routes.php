@@ -19,7 +19,9 @@ $routes->post('/laporan/switch-status', 'Laporan::SwitchStatusLaporan', ['filter
 $routes->delete('/laporan/(:segment)', 'Laporan::HapusLaporan/$1', ['filter' => 'userfilter']);
 
 $routes->get('/verifikasi/(:segment)', 'Verifikasi::DaftarVerfikasi/$1', ['filter' => 'adminuserfilter']);
-$routes->post('/verifikasi', 'Verifikasi::ReportingVerifikasi', ['filter' => 'adminuserfilter']);
+$routes->post('/verifikasi', 'Verifikasi::VerifikasiPetugas', ['filter' => 'userfilter']);
+
+$routes->post('/pengawas/verifikasi', 'Verifikasi::VerifikasiPengawas', ['filter' => 'adminfilter']);
 
 $routes->get('/pengguna/(:segment)', 'Auth::PenggunaSekarang/$1', ['filter' => 'adminuserfilter']);
 $routes->post('/pengguna/ganti-nama', 'Auth::GantiNama', ['filter' => 'adminuserfilter']);

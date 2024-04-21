@@ -5,12 +5,13 @@ namespace App\Controllers;
 use App\Helpers\JwtHelper;
 use App\Models\KegiatanModel;
 use App\Models\LaporanModel;
+use App\Models\VerifikasiKegiatanModel;
 use App\Models\VerifikasiLaporanModel;
 use CodeIgniter\HTTP\Response;
 
 class Verifikasi extends BaseController
 {
-    private $verifikasiLaporanModel, $laporanModel, $kegiatanModel;
+    private $verifikasiLaporanModel, $verifikasiKegiatanModel, $laporanModel, $kegiatanModel;
 
     const HTTP_SERVER_ERROR = 500;
     const HTTP_BAD_REQUEST = 400;
@@ -21,11 +22,12 @@ class Verifikasi extends BaseController
     public function __construct()
     {
         $this->verifikasiLaporanModel = new VerifikasiLaporanModel();
+        $this->verifikasiKegiatanModel = new VerifikasiKegiatanModel();
         $this->laporanModel = new LaporanModel();
         $this->kegiatanModel = new KegiatanModel();
     }
 
-    public function ReportingVerifikasi(): Response
+    public function VerifikasiPetugas(): Response
     {
         try {
             $decoded = JwtHelper::decodeTokenFromRequest($this->request);
@@ -34,7 +36,6 @@ class Verifikasi extends BaseController
                 return $this->messageResponse('Token tidak valid', self::HTTP_UNAUTHORIZED);
             }
 
-            // Dapatkan nip_pengguna dari payload
             $nip_pengguna = $decoded->nip;
 
             $id_laporan = $this->request->getPost('id_laporan');
@@ -47,25 +48,21 @@ class Verifikasi extends BaseController
             }
 
             // Periksa apakah status yang dikirim sesuai dengan nilai yang diizinkan
-            $allowedStatus = ['reporting', 'approval', 'rejection', 'resubmission'];
+            $allowedStatus = ['reporting', 'resubmission'];
             if (!in_array($status, $allowedStatus)) {
                 $message = "Status yang dikirim tidak valid.";
                 return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
             }
 
-            // Ambil semua kegiatan yang terkait dengan laporan yang diberikan
             $kegiatan = $this->kegiatanModel->where('id_laporan', $id_laporan)->findAll();
 
-            // Periksa apakah semua kegiatan sudah terealisasi
             foreach ($kegiatan as $item) {
                 if ($item['terealisasi'] != 1) {
-                    // Jika ada kegiatan yang belum terealisasi, kembalikan pesan kesalahan
                     $message = "Seluruh kegiatan pada laporan harus terealisasi!";
                     return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
                 }
             }
 
-            // Masukkan data ke dalam tabel verifiksai
             $data = [
                 'nip_pengguna' => $nip_pengguna,
                 'id_laporan' => $id_laporan,
@@ -126,6 +123,67 @@ class Verifikasi extends BaseController
             // Tangani kesalahan dan kirim respons error
             $message = 'Terjadi kesalahan dalam mengambil data verifikasi: ' . $th;
             return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
+        }
+    }
+
+    public function VerifikasiPengawas(): Response
+    {
+        try {
+            $decoded = JwtHelper::decodeTokenFromRequest($this->request);
+            if (!$decoded) {
+                return $this->messageResponse('Token tidak valid', self::HTTP_UNAUTHORIZED);
+            }
+
+            $nip_pengguna = $decoded->nip;
+            $dataVerifikasiKegiatan = $this->request->getJSON();
+
+            $id_laporan = $dataVerifikasiKegiatan->id_laporan;
+            $keterangan_verifikasi = $dataVerifikasiKegiatan->keterangan_verifikasi;
+
+            $lastBatch = $this->verifikasiKegiatanModel
+                ->where('id_laporan', $id_laporan)
+                ->orderBy('batch', 'DESC')
+                ->first();
+
+            $nextBatch = $lastBatch ? $lastBatch['batch'] + 1 : 1;
+
+            $statuses = [];
+
+            foreach ($dataVerifikasiKegiatan->list_kegiatan as $verifikasiKegiatan) {
+                $status = $verifikasiKegiatan->approval ? 'approval' : 'rejection';
+
+                $verifikasiKegiatanData = [
+                    'id_kegiatan' => $verifikasiKegiatan->id_kegiatan,
+                    'id_laporan' => $id_laporan,
+                    'nip_pengguna' => $nip_pengguna,
+                    'status' => $status,
+                    'batch' => $nextBatch,
+                    'keterangan' => $verifikasiKegiatan->keterangan
+                ];
+
+                $this->verifikasiKegiatanModel->insert($verifikasiKegiatanData);
+
+                $statuses[] = $verifikasiKegiatan->approval;
+            }
+
+            $status_laporan = array_reduce($statuses, function ($carry, $status) {
+                return $carry && $status;
+            }, true) ? 'approval' : 'rejection';
+
+            $data = [
+                'nip_pengguna' => $nip_pengguna,
+                'id_laporan' => $id_laporan,
+                'status' => $status_laporan,
+                'keterangan' => $keterangan_verifikasi,
+            ];
+
+            $this->verifikasiLaporanModel->insert($data);
+            $this->laporanModel->update($id_laporan, ['status' => $status_laporan]);
+
+            return $this->respondCreated(['message' => 'Verifikasi kegiatan berhasil.']);
+        } catch (\Exception $e) {
+            $message = 'Terjadi kesalahan dalam proses verifikasi kegiatan. Error : ' . $e->getMessage();
+            return $this->messageResponse($message, Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
