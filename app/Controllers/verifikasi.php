@@ -134,7 +134,7 @@ class Verifikasi extends BaseController
                 return $this->messageResponse('Token tidak valid', self::HTTP_UNAUTHORIZED);
             }
 
-            $nip_pengguna = $decoded->nip;
+            $nip_verifikator = $decoded->nip;
             $dataVerifikasiKegiatan = $this->request->getJSON();
 
             $id_laporan = $dataVerifikasiKegiatan->id_laporan;
@@ -155,7 +155,8 @@ class Verifikasi extends BaseController
                 $verifikasiKegiatanData = [
                     'id_kegiatan' => $verifikasiKegiatan->id_kegiatan,
                     'id_laporan' => $id_laporan,
-                    'nip_pengguna' => $nip_pengguna,
+                    'nip_pengguna' => $dataVerifikasiKegiatan->nip_pengguna,
+                    'nip_verifikator' => $nip_verifikator,
                     'status' => $status,
                     'batch' => $nextBatch,
                     'keterangan' => $verifikasiKegiatan->keterangan
@@ -171,7 +172,8 @@ class Verifikasi extends BaseController
             }, true) ? 'approval' : 'rejection';
 
             $data = [
-                'nip_pengguna' => $nip_pengguna,
+                'nip_pengguna' => $dataVerifikasiKegiatan->nip_pengguna,
+                'nip_verifikator' => $nip_verifikator,
                 'id_laporan' => $id_laporan,
                 'status' => $status_laporan,
                 'keterangan' => $keterangan_verifikasi,
@@ -180,7 +182,8 @@ class Verifikasi extends BaseController
             $this->verifikasiLaporanModel->insert($data);
             $this->laporanModel->update($id_laporan, ['status' => $status_laporan]);
 
-            return $this->respondCreated(['message' => 'Verifikasi kegiatan berhasil.']);
+            $message = 'Verifikasi Laporan berhasil.';
+            return $this->messageResponse($message, self::HTTP_SUCCESS);
         } catch (\Exception $e) {
             $message = 'Terjadi kesalahan dalam proses verifikasi kegiatan. Error : ' . $e->getMessage();
             return $this->messageResponse($message, Response::HTTP_INTERNAL_SERVER_ERROR);
