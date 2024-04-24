@@ -40,23 +40,11 @@ class Laporan extends BaseController
             // Buat query berdasarkan parameter filter
             $laporanQuery = $this->laporanModel
                 ->select('laporan.*, laporan.status AS status_laporan, laporan.keterangan AS keterangan_laporan, 
-              pengguna.nama AS nama_pengguna, latest_verifikasi_laporan.status AS status_verifikasi, 
-              latest_verifikasi_laporan.keterangan AS keterangan_verifikasi, latest_verifikasi_laporan.nip_verifikator AS nip_verifikator')
+              pengguna.nama AS nama_pengguna')
                 ->where('laporan.nip_pengguna', $nip_pengguna)
                 ->join('pengguna', 'pengguna.nip = laporan.nip_pengguna')
-                ->join('verifikasi_laporan', 'verifikasi_laporan.id_laporan = laporan.id', 'left')
-                ->join(
-                    "(SELECT id_laporan, status, keterangan, nip_verifikator 
-          FROM verifikasi_laporan 
-          WHERE id IN (SELECT MAX(id) FROM verifikasi_laporan GROUP BY id_laporan)
-        ) AS latest_verifikasi_laporan",
-                    "latest_verifikasi_laporan.id_laporan = laporan.id",
-                    'left'
-                )
                 ->groupBy('laporan.id')
                 ->withDeleted();
-
-
 
             if (!empty($tahun)) {
                 $laporanQuery->where('tahun', $tahun);
@@ -85,13 +73,10 @@ class Laporan extends BaseController
                     'id' => $item['id'],
                     'nip_pengguna' => $item['nip_pengguna'],
                     'nama_pengguna' => $item['nama_pengguna'],
-                    'nip_verifikator' => $item['nip_verifikator'],
                     'tahun' => $item['tahun'],
                     'bulan' => $item['bulan'],
                     'keterangan_laporan' => $item['keterangan_laporan'],
                     'status_laporan' => $item['status_laporan'],
-                    'status_verifikasi' => $item['status_verifikasi'],
-                    'keterangan_verifikasi' => $item['keterangan_verifikasi'],
                     'active' => ($item['deleted_at'] == null) ? true : false,
                 ];
             }
@@ -123,6 +108,17 @@ class Laporan extends BaseController
 
             if (empty($nip_pengguna) || empty($tahun) || empty($bulan)) {
                 $message = "Required field Tahun dan Bulan harus diisi.";
+                return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
+            }
+
+            $existingLaporan = $this->laporanModel
+                ->where('nip_pengguna', $nip_pengguna)
+                ->where('tahun', $tahun)
+                ->where('bulan', $bulan)
+                ->first();
+
+            if ($existingLaporan) {
+                $message = "Laporan untuk bulan dan tahun yang sama sudah ada.";
                 return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
             }
 
@@ -217,15 +213,9 @@ class Laporan extends BaseController
             $status = $this->request->getGet('status');
 
             // Buat query berdasarkan parameter filter
-            $laporanQuery = $this->laporanModel->select('laporan.*, laporan.status AS status_laporan, laporan.keterangan AS keterangan_laporan, pengguna.nama AS nama_pengguna, verifikasi_laporan.status AS status_verifikasi, verifikasi_laporan.keterangan AS keterangan_verifikasi')
-                ->where('laporan.status', 'reported')
+            $laporanQuery = $this->laporanModel->select('laporan.*, laporan.status AS status_laporan, laporan.keterangan AS keterangan_laporan, pengguna.nama AS nama_pengguna')
+                ->where('laporan.status', 'reporting')
                 ->join('pengguna', 'pengguna.nip = laporan.nip_pengguna')
-                ->join('verifikasi_laporan', 'verifikasi_laporan.id_laporan = laporan.id', 'left')
-                ->join(
-                    "(SELECT id_laporan, MAX(id) AS max_id FROM verifikasi_laporan GROUP BY id_laporan) AS latest_verifikasi_laporan",
-                    "latest_verifikasi_laporan.id_laporan = laporan.id AND verifikasi_laporan.id = latest_verifikasi_laporan.max_id",
-                    'left'
-                )
                 ->withDeleted();
 
             if (!empty($tahun)) {
@@ -236,8 +226,7 @@ class Laporan extends BaseController
             }
 
             if (!empty($status)) {
-                $laporanQuery->where('verifikasi_laporan.status', $status)
-                    ->orWhere('laporan.status', $status);
+                $laporanQuery->where('laporan.status', $status);
             }
 
             // Eksekusi query
@@ -259,8 +248,6 @@ class Laporan extends BaseController
                     'bulan' => $item['bulan'],
                     'keterangan_laporan' => $item['keterangan_laporan'],
                     'status_laporan' => $item['status_laporan'],
-                    'status_verifikasi' => $item['status_verifikasi'],
-                    'keterangan_verifikasi' => $item['keterangan_verifikasi'],
                     'active' => ($item['deleted_at'] == null) ? true : false,
                 ];
             }

@@ -55,11 +55,9 @@ class Kegiatan extends BaseController
             // Format data kegiatan
             $formattedData = [];
             foreach ($kegiatan as $item) {
-                $terealisasi = $item['terealisasi'] === '1' ? true : false;
 
                 $formattedData[] = [
                     'id' => $item['id'],
-                    'terealisasi' => $terealisasi,
                     'tanggal' => $item['tanggal'],
                     'target' => $item['target'],
                     'nama' => $item['nama'],
@@ -146,7 +144,6 @@ class Kegiatan extends BaseController
 
             // Lakukan pembaruan pada tabel kegiatan
             $data = [
-                'terealisasi' => true,
                 'realisasi' => $realisasi,
                 'keterangan' => $keterangan,
             ];

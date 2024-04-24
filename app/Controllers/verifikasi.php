@@ -48,7 +48,7 @@ class Verifikasi extends BaseController
             }
 
             // Periksa apakah status yang dikirim sesuai dengan nilai yang diizinkan
-            $allowedStatus = ['reporting', 'resubmission'];
+            $allowedStatus = ['reporting'];
             if (!in_array($status, $allowedStatus)) {
                 $message = "Status yang dikirim tidak valid.";
                 return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
@@ -57,21 +57,20 @@ class Verifikasi extends BaseController
             $kegiatan = $this->kegiatanModel->where('id_laporan', $id_laporan)->findAll();
 
             foreach ($kegiatan as $item) {
-                if ($item['terealisasi'] != 1) {
+                if ($item['realisasi'] == null) {
                     $message = "Seluruh kegiatan pada laporan harus terealisasi!";
                     return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
                 }
             }
 
             $data = [
-                'nip_pengguna' => $nip_pengguna,
                 'id_laporan' => $id_laporan,
                 'status' => $status,
                 'keterangan' => $keterangan,
             ];
 
             $this->verifikasiLaporanModel->insert($data);
-            $this->laporanModel->update($id_laporan, ['status' => 'reported']);
+            $this->laporanModel->update($id_laporan, ['status' => 'reporting']);
 
             // Kirim respons berhasil menambahkan verifikasi
             $message = "Berhasil menambahkan proses verifikasi.";
@@ -186,6 +185,26 @@ class Verifikasi extends BaseController
             return $this->messageResponse($message, self::HTTP_SUCCESS);
         } catch (\Exception $e) {
             $message = 'Terjadi kesalahan dalam proses verifikasi kegiatan. Error : ' . $e->getMessage();
+            return $this->messageResponse($message, Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function GetLastVerifLaporanByID(int $id_laporan) : Response {
+        try {
+            $lastVerif = $this->verifikasiLaporanModel->where('id_laporan', $id_laporan)->orderBy('id', 'DESC')->first();
+
+            if (!$lastVerif) {
+                return $this->messageResponse('Verifikasi laporan tidak ditemukan', self::HTTP_BAD_REQUEST);
+            }
+
+            $data = [
+                'status' => $lastVerif['status'],
+                'keterangan' => $lastVerif['>keterangan'],
+            ];
+
+            return $this->dataResponse($data, self::HTTP_SUCCESS);
+        } catch (\Throwable $th) {
+            $message = 'Terjadi kesalahan dalam proses verifikasi kegiatan. Error : ' . $th;
             return $this->messageResponse($message, Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
