@@ -4,12 +4,13 @@ namespace App\Controllers;
 
 use App\Helpers\JwtHelper;
 use App\Models\LaporanModel;
+use App\Models\VerifikasiLaporanModel;
 use \CodeIgniter\HTTP\Response;
 
 class Laporan extends BaseController
 {
 
-    private $laporanModel;
+    private $laporanModel, $verifikasiLaporanModel;
 
     const HTTP_SERVER_ERROR = 500;
     const HTTP_BAD_REQUEST = 400;
@@ -20,6 +21,7 @@ class Laporan extends BaseController
     public function __construct()
     {
         $this->laporanModel = new LaporanModel();
+        $this->verifikasiLaporanModel = new VerifikasiLaporanModel();
     }
 
     public function DaftarLaporan(): Response
@@ -240,6 +242,8 @@ class Laporan extends BaseController
             // Format data laporan
             // $formattedData = [];
             foreach ($laporan as $item) {
+                $lastVerif = $this->verifikasiLaporanModel->where('id_laporan', $item['id'])->orderBy('id', 'DESC')->first();
+
                 $formattedData[] = [
                     'id' => $item['id'],
                     'nip_pengguna' => $item['nip_pengguna'],
@@ -248,6 +252,8 @@ class Laporan extends BaseController
                     'bulan' => $item['bulan'],
                     'keterangan_laporan' => $item['keterangan_laporan'],
                     'status_laporan' => $item['status_laporan'],
+                    'status_verifikasi' => $lastVerif['status'] ? $lastVerif['status'] : null,
+                    'keterangan_verifikasi' => $lastVerif['keterangan'] ? $lastVerif['keterangan'] : null,
                     'active' => ($item['deleted_at'] == null) ? true : false,
                 ];
             }

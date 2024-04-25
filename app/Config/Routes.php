@@ -22,7 +22,6 @@ $routes->get('/verifikasi/(:segment)', 'Verifikasi::DaftarVerfikasi/$1', ['filte
 $routes->post('/verifikasi', 'Verifikasi::VerifikasiPetugas', ['filter' => 'userfilter']);
 
 $routes->post('/pengawas/verifikasi', 'Verifikasi::VerifikasiPengawas', ['filter' => 'adminfilter']);
-$routes->get('/pengawas/verifikasi-laporan/last/(:segment)', 'Verifikasi::GetLastVerifLaporanByID', ['filter' => 'adminfilter']);
 
 $routes->get('/pengguna/(:segment)', 'Auth::PenggunaSekarang/$1', ['filter' => 'adminuserfilter']);
 $routes->post('/pengguna/ganti-nama', 'Auth::GantiNama', ['filter' => 'adminuserfilter']);

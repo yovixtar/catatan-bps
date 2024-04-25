@@ -65,6 +65,7 @@ class Kegiatan extends BaseController
                     'nama_pengguna' => $item['nama_pengguna'],
                     'realisasi' => $item['realisasi'],
                     'keterangan' => $item['keterangan'],
+                    'status' => $item['status'],
                 ];
             }
 

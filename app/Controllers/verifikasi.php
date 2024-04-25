@@ -11,7 +11,7 @@ use CodeIgniter\HTTP\Response;
 
 class Verifikasi extends BaseController
 {
-    private $verifikasiLaporanModel, $verifikasiKegiatanModel, $laporanModel, $kegiatanModel;
+    private $db, $verifikasiLaporanModel, $verifikasiKegiatanModel, $laporanModel, $kegiatanModel;
 
     const HTTP_SERVER_ERROR = 500;
     const HTTP_BAD_REQUEST = 400;
@@ -21,6 +21,7 @@ class Verifikasi extends BaseController
 
     public function __construct()
     {
+        $this->db = \Config\Database::connect();
         $this->verifikasiLaporanModel = new VerifikasiLaporanModel();
         $this->verifikasiKegiatanModel = new VerifikasiKegiatanModel();
         $this->laporanModel = new LaporanModel();
@@ -139,12 +140,15 @@ class Verifikasi extends BaseController
             $id_laporan = $dataVerifikasiKegiatan->id_laporan;
             $keterangan_verifikasi = $dataVerifikasiKegiatan->keterangan_verifikasi;
 
-            $lastBatch = $this->verifikasiKegiatanModel
+            $this->db->transStart();
+            // $this->db->query('LOCK TABLES verifikasi_laporan WRITE');
+            
+            $lastIDLaporan = $this->verifikasiLaporanModel
                 ->where('id_laporan', $id_laporan)
-                ->orderBy('batch', 'DESC')
+                ->orderBy('id', 'DESC')
                 ->first();
 
-            $nextBatch = $lastBatch ? $lastBatch['batch'] + 1 : 1;
+            $nextIDLaporan = $lastIDLaporan ? $lastIDLaporan['id'] + 1 : 1;
 
             $statuses = [];
 
@@ -154,14 +158,14 @@ class Verifikasi extends BaseController
                 $verifikasiKegiatanData = [
                     'id_kegiatan' => $verifikasiKegiatan->id_kegiatan,
                     'id_laporan' => $id_laporan,
-                    'nip_pengguna' => $dataVerifikasiKegiatan->nip_pengguna,
+                    'id_verifikasi_laporan' => $nextIDLaporan,
                     'nip_verifikator' => $nip_verifikator,
                     'status' => $status,
-                    'batch' => $nextBatch,
                     'keterangan' => $verifikasiKegiatan->keterangan
                 ];
 
                 $this->verifikasiKegiatanModel->insert($verifikasiKegiatanData);
+                $this->kegiatanModel->update($verifikasiKegiatan->id_kegiatan, ['status' => $status]);
 
                 $statuses[] = $verifikasiKegiatan->approval;
             }
@@ -171,7 +175,7 @@ class Verifikasi extends BaseController
             }, true) ? 'approval' : 'rejection';
 
             $data = [
-                'nip_pengguna' => $dataVerifikasiKegiatan->nip_pengguna,
+                'id' => $nextIDLaporan,
                 'nip_verifikator' => $nip_verifikator,
                 'id_laporan' => $id_laporan,
                 'status' => $status_laporan,
@@ -181,31 +185,16 @@ class Verifikasi extends BaseController
             $this->verifikasiLaporanModel->insert($data);
             $this->laporanModel->update($id_laporan, ['status' => $status_laporan]);
 
+            $this->db->transComplete();
+
             $message = 'Verifikasi Laporan berhasil.';
             return $this->messageResponse($message, self::HTTP_SUCCESS);
         } catch (\Exception $e) {
+            $this->db->transRollback();
+            
             $message = 'Terjadi kesalahan dalam proses verifikasi kegiatan. Error : ' . $e->getMessage();
             return $this->messageResponse($message, Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
-    public function GetLastVerifLaporanByID(int $id_laporan) : Response {
-        try {
-            $lastVerif = $this->verifikasiLaporanModel->where('id_laporan', $id_laporan)->orderBy('id', 'DESC')->first();
-
-            if (!$lastVerif) {
-                return $this->messageResponse('Verifikasi laporan tidak ditemukan', self::HTTP_BAD_REQUEST);
-            }
-
-            $data = [
-                'status' => $lastVerif['status'],
-                'keterangan' => $lastVerif['>keterangan'],
-            ];
-
-            return $this->dataResponse($data, self::HTTP_SUCCESS);
-        } catch (\Throwable $th) {
-            $message = 'Terjadi kesalahan dalam proses verifikasi kegiatan. Error : ' . $th;
-            return $this->messageResponse($message, Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
 }
