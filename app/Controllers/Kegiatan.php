@@ -173,7 +173,7 @@ class Kegiatan extends BaseController
             }
 
             // Hapus kegiatan dari database
-            $this->kegiatanModel->where('id', $id)->delete();
+            $this->kegiatanModel->delete($id);
 
             // Kirim respons berhasil menghapus kegiatan
             return $this->messageResponse('Berhasil menghapus kegiatan', self::HTTP_SUCCESS);

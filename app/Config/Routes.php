@@ -18,7 +18,8 @@ $routes->post('/laporan', 'Laporan::TambahLaporan', ['filter' => 'userfilter']);
 $routes->post('/laporan/switch-status', 'Laporan::SwitchStatusLaporan', ['filter' => 'userfilter']);
 $routes->delete('/laporan/(:segment)', 'Laporan::HapusLaporan/$1', ['filter' => 'userfilter']);
 
-$routes->get('/verifikasi/(:segment)', 'Verifikasi::DaftarVerfikasi/$1', ['filter' => 'adminuserfilter']);
+$routes->get('/verifikasi/laporan/(:segment)', 'Verifikasi::DaftarVerifikasiLaporan/$1', ['filter' => 'userfilter']);
+$routes->get('/verifikasi/kegiatan/(:segment)', 'Verifikasi::DaftarVerifikasiKegiatan/$1', ['filter' => 'userfilter']);
 $routes->post('/verifikasi', 'Verifikasi::VerifikasiPetugas', ['filter' => 'userfilter']);
 
 $routes->post('/pengawas/verifikasi', 'Verifikasi::VerifikasiPengawas', ['filter' => 'adminfilter']);

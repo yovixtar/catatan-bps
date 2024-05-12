@@ -215,9 +215,10 @@ class Laporan extends BaseController
             $status = $this->request->getGet('status');
 
             // Buat query berdasarkan parameter filter
-            $laporanQuery = $this->laporanModel->select('laporan.*, laporan.status AS status_laporan, laporan.keterangan AS keterangan_laporan, pengguna.nama AS nama_pengguna')
-                ->where('laporan.status', 'reporting')
+            $laporanQuery = $this->laporanModel
+                ->select('laporan.*, laporan.status AS status_laporan, laporan.keterangan AS keterangan_laporan, pengguna.nama AS nama_pengguna')
                 ->join('pengguna', 'pengguna.nip = laporan.nip_pengguna')
+                ->groupBy('laporan.id')
                 ->withDeleted();
 
             if (!empty($tahun)) {
@@ -229,6 +230,8 @@ class Laporan extends BaseController
 
             if (!empty($status)) {
                 $laporanQuery->where('laporan.status', $status);
+            } else {
+                $laporanQuery->where('laporan.status', 'reporting');
             }
 
             // Eksekusi query

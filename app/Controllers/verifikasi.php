@@ -83,49 +83,6 @@ class Verifikasi extends BaseController
         }
     }
 
-
-    public function DaftarVerfikasi(int $id_laporan)
-    {
-        try {
-
-            if (empty($id_laporan)) {
-                $message = "ID laporan harus diisi.";
-                return $this->messageResponse($message, self::HTTP_BAD_REQUEST);
-            }
-
-            // Ambil data verifikasi dari database
-            $verifikasi = $this->verifikasiLaporanModel
-                ->where('id_laporan', $id_laporan)
-                ->join('pengguna', 'pengguna.nip = verifikasi.nip_pengguna', 'left')
-                ->select('verifikasi.*, pengguna.nama AS nama_pengguna')
-                ->findAll();
-
-            // Jika tidak ada verifikasi, kirim respons kosong
-            if (empty($verifikasi)) {
-                return $this->dataResponse([], self::HTTP_SUCCESS);
-            }
-
-            // Format data riwayat verifikasi
-            $formattedData = [];
-            foreach ($verifikasi as $item) {
-                $formattedData[] = [
-                    'id' => $item['id'],
-                    'nip_pengguna' => $item['nip_pengguna'],
-                    'nama_pengguna' => $item['nama_pengguna'],
-                    'status' => $item['status'],
-                    'keterangan' => $item['keterangan'],
-                ];
-            }
-
-            // Kirim respons dengan data riwayat verifikasi
-            return $this->dataResponse($formattedData, self::HTTP_SUCCESS);
-        } catch (\Throwable $th) {
-            // Tangani kesalahan dan kirim respons error
-            $message = 'Terjadi kesalahan dalam mengambil data verifikasi: ' . $th;
-            return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
-        }
-    }
-
     public function VerifikasiPengawas(): Response
     {
         try {
@@ -142,7 +99,7 @@ class Verifikasi extends BaseController
 
             $this->db->transStart();
             // $this->db->query('LOCK TABLES verifikasi_laporan WRITE');
-            
+
             $lastIDLaporan = $this->verifikasiLaporanModel
                 ->where('id_laporan', $id_laporan)
                 ->orderBy('id', 'DESC')
@@ -191,10 +148,80 @@ class Verifikasi extends BaseController
             return $this->messageResponse($message, self::HTTP_SUCCESS);
         } catch (\Exception $e) {
             $this->db->transRollback();
-            
+
             $message = 'Terjadi kesalahan dalam proses verifikasi kegiatan. Error : ' . $e->getMessage();
             return $this->messageResponse($message, Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
+    public function DaftarVerifikasiLaporan(string $id_laporan): Response
+    {
+        try {
+            $data_verifikasi = $this->verifikasiLaporanModel
+                ->where('id_laporan', $id_laporan)
+                ->whereIn('status', ['rejection', 'approval'])
+                ->orderBy('created_at', 'ASC')->findAll();
+
+            if (empty($data_verifikasi)) {
+                return $this->dataResponse([], self::HTTP_SUCCESS);
+            }
+
+            $formattedData = [];
+            foreach ($data_verifikasi as $item) {
+                $formattedData[] = [
+                    'id' => $item['id'],
+                    'status_laporan' => $item['status'],
+                    'keterangan_laporan' => $item['keterangan'],
+                    'status_verifikasi' => $item['status'],
+                    'keterangan_verifikasi' => $item['keterangan'],
+                    'tanggal' => date('Y-m-d', strtotime($item['created_at'])),
+                    'active' => true,
+                ];
+            }
+
+            return $this->dataResponse($formattedData, self::HTTP_SUCCESS);
+        } catch (\Throwable $th) {
+            // Tangani kesalahan dan kirim respons error
+            $message = 'Terjadi kesalahan dalam mengambil data verifikasi : ' . $th;
+            return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
+        }
+    }
+
+    public function DaftarVerifikasiKegiatan(int $id_verifikasi_laporan): Response
+    {
+        try {
+            $data_verifikasi = $this->verifikasiKegiatanModel
+                ->where('id_verifikasi_laporan', $id_verifikasi_laporan)
+                ->join('kegiatan', 'kegiatan.id = verifikasi_kegiatan.id_kegiatan', 'left')
+                ->join('pengguna', 'pengguna.nip = kegiatan.nip_pengguna', 'left')
+                ->select("verifikasi_kegiatan.id AS id, verifikasi_kegiatan.status AS status, kegiatan.keterangan AS keterangan, verifikasi_kegiatan.created_at AS created_at, kegiatan.target AS target, kegiatan.nama AS nama, kegiatan.nip_pengguna AS nip_pengguna, pengguna.nama AS nama_pengguna, kegiatan.realisasi AS realisasi")
+                ->orderBy('created_at', 'ASC')->findAll();
+
+            if (empty($data_verifikasi)) {
+                return $this->dataResponse([], self::HTTP_SUCCESS);
+            }
+
+            $formattedData = [];
+            foreach ($data_verifikasi as $item) {
+                $formattedData[] = [
+                    'id' => $item['id'],
+                    'status' => $item['status'],
+                    'keterangan' => $item['keterangan'],
+                    'tanggal' => date('Y-m-d', strtotime($item['created_at'])),
+                    
+                    'target' => $item['target'],
+                    'nama' => $item['nama'],
+                    'nip_pengguna' => $item['nip_pengguna'],
+                    'nama_pengguna' => $item['nama_pengguna'],
+                    'realisasi' => $item['realisasi'],
+                ];
+            }
+
+            return $this->dataResponse($formattedData, self::HTTP_SUCCESS);
+        } catch (\Throwable $th) {
+            // Tangani kesalahan dan kirim respons error
+            $message = 'Terjadi kesalahan dalam mengambil data verifikasi : ' . $th;
+            return $this->messageResponse($message, self::HTTP_SERVER_ERROR);
+        }
+    }
 }

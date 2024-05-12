@@ -8,7 +8,7 @@ class KegiatanModel extends Model
 {
     protected $table            = 'kegiatan';
     protected $primaryKey       = 'id';
-    protected $useSoftDeletes   = false;
+    protected $useSoftDeletes   = true;
     protected $allowedFields    = ['id_laporan', 'tanggal', 'target', 'nama', 'nip_pengguna', 'realisasi', 'keterangan', 'status', 'created_at', 'updated_at', 'deleted_at'];
 
     // Dates
