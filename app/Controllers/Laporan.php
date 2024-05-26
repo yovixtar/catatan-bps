@@ -56,8 +56,7 @@ class Laporan extends BaseController
             }
 
             if (!empty($status)) {
-                $laporanQuery->where('verifikasi_laporan.status', $status)
-                    ->orWhere('laporan.status', $status);
+                $laporanQuery->where('laporan.status', $status);
             }
 
             // Eksekusi query

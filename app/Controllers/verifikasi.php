@@ -15,6 +15,7 @@ class Verifikasi extends BaseController
 
     const HTTP_SERVER_ERROR = 500;
     const HTTP_BAD_REQUEST = 400;
+    const HTTP_NOT_FOUND = 404;
     const HTTP_UNAUTHORIZED = 401;
     const HTTP_SUCCESS = 200;
     const HTTP_SUCCESS_CREATE = 201;
@@ -56,6 +57,11 @@ class Verifikasi extends BaseController
             }
 
             $kegiatan = $this->kegiatanModel->where('id_laporan', $id_laporan)->findAll();
+
+            if (empty($kegiatan)) {
+                    $message = "Tidak ada kegiatan pada laporan ini!";
+                    return $this->messageResponse($message, self::HTTP_NOT_FOUND);
+            }
 
             foreach ($kegiatan as $item) {
                 if ($item['realisasi'] == null) {
