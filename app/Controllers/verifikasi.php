@@ -11,7 +11,7 @@ use CodeIgniter\HTTP\Response;
 
 class Verifikasi extends BaseController
 {
-    private $db, $verifikasiLaporanModel, $verifikasiKegiatanModel, $laporanModel, $kegiatanModel;
+    private $verifikasiLaporanModel, $verifikasiKegiatanModel, $laporanModel, $kegiatanModel;
 
     const HTTP_SERVER_ERROR = 500;
     const HTTP_BAD_REQUEST = 400;
@@ -22,7 +22,6 @@ class Verifikasi extends BaseController
 
     public function __construct()
     {
-        $this->db = \Config\Database::connect();
         $this->verifikasiLaporanModel = new VerifikasiLaporanModel();
         $this->verifikasiKegiatanModel = new VerifikasiKegiatanModel();
         $this->laporanModel = new LaporanModel();
@@ -103,9 +102,6 @@ class Verifikasi extends BaseController
             $id_laporan = $dataVerifikasiKegiatan->id_laporan;
             $keterangan_verifikasi = $dataVerifikasiKegiatan->keterangan_verifikasi;
 
-            $this->db->transStart();
-            // $this->db->query('LOCK TABLES verifikasi_laporan WRITE');
-
             $lastIDLaporan = $this->verifikasiLaporanModel
                 ->where('id_laporan', $id_laporan)
                 ->orderBy('id', 'DESC')
@@ -148,13 +144,9 @@ class Verifikasi extends BaseController
             $this->verifikasiLaporanModel->insert($data);
             $this->laporanModel->update($id_laporan, ['status' => $status_laporan]);
 
-            $this->db->transComplete();
-
             $message = 'Verifikasi Laporan berhasil.';
             return $this->messageResponse($message, self::HTTP_SUCCESS);
         } catch (\Exception $e) {
-            $this->db->transRollback();
-
             $message = 'Terjadi kesalahan dalam proses verifikasi kegiatan. Error : ' . $e->getMessage();
             return $this->messageResponse($message, Response::HTTP_INTERNAL_SERVER_ERROR);
         }
